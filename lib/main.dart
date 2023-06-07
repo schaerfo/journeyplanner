@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2023 Christian Schärf
 
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
 import 'package:flutter/material.dart';
 
 void main() {
@@ -39,7 +43,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key, required this.title});
 
   // This widget is the home page of your application. It is stateful, meaning
@@ -52,24 +56,6 @@ class MyHomePage extends StatefulWidget {
   // always marked "final".
 
   final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,42 +73,151 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text(title),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      body: const Center(child: StopoverQuery()),
+    );
+  }
+}
+
+class StopoverQuery extends StatefulWidget {
+  const StopoverQuery({super.key});
+
+  @override
+  State<StopoverQuery> createState() => _StopoverQueryState();
+}
+
+class _StopoverQueryState extends State<StopoverQuery> {
+  Station? _selectedStation;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      children: [
+        _selectedStation == null
+            ? Text(
+                "Station",
+                style: TextStyle(color: theme.hintColor),
+              )
+            : Text(_selectedStation!.name),
+        ElevatedButton(
+            onPressed: () {
+              _openStationSearch(context);
+            },
+            child: const Text('Select Station')),
+      ],
+    );
+  }
+
+  void _openStationSearch(BuildContext context) async {
+    final station = await Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const StationSearchPage()));
+    setState(() {
+      _selectedStation = station;
+    });
+  }
+}
+
+class StationSearchPage extends StatelessWidget {
+  const StationSearchPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text('Select Station'),
+      ),
+      body: const Center(child: StationSearch()),
+    );
+  }
+}
+
+class StationSearch extends StatefulWidget {
+  const StationSearch({
+    super.key,
+  });
+
+  @override
+  State<StationSearch> createState() => _StationSearchState();
+}
+
+class Station {
+  const Station({required this.id, required this.name});
+
+  final String id; // The id is a string in the API response
+  final String name;
+}
+
+class _StationSearchState extends State<StationSearch> {
+  var _searchInProgress = false;
+  final _searchResults = <Station>[];
+  final _client = http.Client();
+
+  void searchStation(String query) async {
+    var uri = Uri(
+        scheme: 'https',
+        host: 'v6.db.transport.rest',
+        path: 'stations',
+        queryParameters: {'query': query});
+    setState(() {
+      _searchInProgress = true;
+    });
+    var response = await _client.get(uri);
+    if (response.statusCode != 200) {
+      print("Error: HTTP status ${response.statusCode}");
+      return;
+    }
+    var decoded = jsonDecode(utf8.decode(response.bodyBytes));
+    setState(() {
+      _searchInProgress = false;
+      _searchResults.clear();
+      for (var currStation in decoded.values) {
+        _searchResults
+            .add(Station(id: currStation['id'], name: currStation['name']));
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Station:'),
+            const SizedBox(width: 10),
+            SizedBox(
+              width: 150,
+              child: TextField(
+                onSubmitted: (value) {
+                  searchStation(value);
+                },
+              ),
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+        const SizedBox(
+          height: 15,
+        ),
+        if (_searchInProgress) const CircularProgressIndicator(),
+        for (var currResult in _searchResults)
+          Column(
+            children: [
+              const SizedBox(
+                height: 5,
+              ),
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context, currResult);
+                  },
+                  child: Text(currResult.name)),
+            ],
+          ),
+      ],
     );
   }
 }
