@@ -87,8 +87,11 @@ class StopoverQuery extends StatefulWidget {
   State<StopoverQuery> createState() => _StopoverQueryState();
 }
 
+enum StopoverType { arrival, departure }
+
 class _StopoverQueryState extends State<StopoverQuery> {
   Station? _selectedStation;
+  StopoverType? _stopoverType = StopoverType.departure;
 
   @override
   Widget build(BuildContext context) {
@@ -107,6 +110,22 @@ class _StopoverQueryState extends State<StopoverQuery> {
               _openStationSearch(context);
             },
             child: const Text('Select Station')),
+        ListTile(
+            title: const Text('Arrival'),
+            leading: Radio<StopoverType>(
+                value: StopoverType.arrival,
+                groupValue: _stopoverType,
+                onChanged: (StopoverType? type) {
+                  _setStopoverType(type);
+                })),
+        ListTile(
+            title: const Text('Departure'),
+            leading: Radio<StopoverType>(
+                value: StopoverType.departure,
+                groupValue: _stopoverType,
+                onChanged: (StopoverType? type) {
+                  _setStopoverType(type);
+                })),
       ],
     );
   }
@@ -116,6 +135,12 @@ class _StopoverQueryState extends State<StopoverQuery> {
         MaterialPageRoute(builder: (context) => const StationSearchPage()));
     setState(() {
       _selectedStation = station;
+    });
+  }
+
+  void _setStopoverType(StopoverType? type) {
+    setState(() {
+      _stopoverType = type;
     });
   }
 }
