@@ -75,7 +75,7 @@ class MyHomePage extends StatelessWidget {
         // the App.build method, and use it to set our appbar title.
         title: Text(title),
       ),
-      body: const Center(child: StopoverQuery()),
+      body: const StopoverQuery(),
     );
   }
 }
@@ -91,7 +91,11 @@ enum StopoverType { arrival, departure }
 
 class _StopoverQueryState extends State<StopoverQuery> {
   Station? _selectedStation;
-  StopoverType? _stopoverType = StopoverType.departure;
+  StopoverType _stopoverType = StopoverType.departure;
+
+  final _client = http.Client();
+  var _inProgress = false;
+  var _stopovers = [];
 
   @override
   Widget build(BuildContext context) {
@@ -126,6 +130,21 @@ class _StopoverQueryState extends State<StopoverQuery> {
                 onChanged: (StopoverType? type) {
                   _setStopoverType(type);
                 })),
+        ElevatedButton(
+            onPressed: () {
+              _fetchStopovers(context);
+            },
+            child: const Text('Fetch')),
+        const Divider(),
+        if (_inProgress) const CircularProgressIndicator(),
+        Expanded(
+          child: ListView.separated(
+            itemCount: _stopovers.length,
+            itemBuilder: (context, index) => StopoverDisplay(
+                stopoverData: _stopovers[index], type: _stopoverType),
+            separatorBuilder: (context, index) => const Divider(),
+          ),
+        ),
       ],
     );
   }
@@ -139,9 +158,63 @@ class _StopoverQueryState extends State<StopoverQuery> {
   }
 
   void _setStopoverType(StopoverType? type) {
+    // When can this happen?
+    if (type == null) {
+      return;
+    }
     setState(() {
+      _stopovers.clear();
       _stopoverType = type;
     });
+  }
+
+  void _fetchStopovers(BuildContext context) async {
+    if (_selectedStation == null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('No station selected')));
+      return;
+    }
+
+    final keyword =
+        _stopoverType == StopoverType.arrival ? 'arrivals' : 'departures';
+    final uri = Uri(
+        scheme: 'https',
+        host: 'v6.db.transport.rest',
+        path: 'stops/${_selectedStation!.id}/$keyword');
+    setState(() {
+      _inProgress = true;
+    });
+    var response = await _client.get(uri);
+    if (response.statusCode != 200) {
+      print("Error: HTTP status ${response.statusCode}");
+      return;
+    }
+    var decoded = jsonDecode(utf8.decode(response.bodyBytes));
+    setState(() {
+      _inProgress = false;
+      _stopovers = decoded[keyword];
+    });
+  }
+}
+
+class StopoverDisplay extends StatelessWidget {
+  const StopoverDisplay(
+      {super.key, required this.stopoverData, required this.type});
+
+  final StopoverType type;
+  final Map stopoverData;
+
+  @override
+  Widget build(BuildContext context) {
+    const icon = Icon(Icons.train);
+    final lineName = stopoverData['line']['name'];
+    final text = type == StopoverType.arrival
+        ? stopoverData['provenance']
+        : stopoverData['direction'];
+
+    return Row(
+      children: [icon, Text('$lineName $text')],
+    );
   }
 }
 
