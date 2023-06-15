@@ -89,19 +89,17 @@ class _StationSearchState extends State<_StationSearch> {
           height: 15,
         ),
         if (_searchInProgress) const CircularProgressIndicator(),
-        for (var currResult in _searchResults)
-          Column(
-            children: [
-              const SizedBox(
-                height: 5,
-              ),
-              ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context, currResult);
-                  },
-                  child: Text(currResult.name)),
-            ],
-          ),
+        Expanded(
+          child: ListView.separated(
+              itemBuilder: (context, index) => ListTile(
+                    title: Text(_searchResults[index].name),
+                    onTap: () {
+                      Navigator.pop(context, _searchResults[index]);
+                    },
+                  ),
+              separatorBuilder: (context, index) => const Divider(),
+              itemCount: _searchResults.length),
+        ),
       ],
     );
   }
