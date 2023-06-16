@@ -3,7 +3,7 @@
 
 import 'package:flutter/material.dart';
 
-import 'screens/stopoverquery.dart';
+import 'screens/home.dart';
 
 void main() {
   runApp(const JourneyPlannerApp());
@@ -20,7 +20,7 @@ class JourneyPlannerApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const StopoverQueryPage(),
+      home: HomeScreenPage(),
     );
   }
 }
