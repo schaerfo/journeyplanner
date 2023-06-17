@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import 'dart:convert';
 
+import '../data/station.dart';
 import 'stationsearch.dart';
 
 class StopoverQueryPage extends StatelessWidget {

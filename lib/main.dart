@@ -2,7 +2,9 @@
 // Copyright (C) 2023 Christian Schärf
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import 'data/appstate.dart';
 import 'screens/home.dart';
 
 void main() {
@@ -14,13 +16,16 @@ class JourneyPlannerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Journey Planner',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return ChangeNotifierProvider(
+      create: (context) => AppState(),
+      child: MaterialApp(
+        title: 'Journey Planner',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+        ),
+        home: const HomeScreenPage(),
       ),
-      home: HomeScreenPage(),
     );
   }
 }

@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 
 import 'dart:convert';
 
+import '../data/station.dart';
+
 class StationSearchPage extends StatelessWidget {
   const StationSearchPage({super.key});
 
@@ -27,13 +29,6 @@ class _StationSearch extends StatefulWidget {
 
   @override
   State<_StationSearch> createState() => _StationSearchState();
-}
-
-class Station {
-  const Station({required this.id, required this.name});
-
-  final String id; // The id is a string in the API response
-  final String name;
 }
 
 class _StationSearchState extends State<_StationSearch> {
