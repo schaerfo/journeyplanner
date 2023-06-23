@@ -41,6 +41,8 @@ class _StopoverQueryState extends State<_StopoverQuery> {
   final _client = http.Client();
   var _inProgress = false;
   var _stopovers = [];
+  // Using _stopovers.isEmpty is not possible since that would be true initially
+  var _emptyResult = false;
 
   @override
   Widget build(BuildContext context) {
@@ -83,12 +85,19 @@ class _StopoverQueryState extends State<_StopoverQuery> {
         const Divider(),
         if (_inProgress) const CircularProgressIndicator(),
         Expanded(
-          child: ListView.separated(
-            itemCount: _stopovers.length,
-            itemBuilder: (context, index) => _StopoverDisplay(
-                stopoverData: _stopovers[index], type: _stopoverType),
-            separatorBuilder: (context, index) => const Divider(),
-          ),
+          child: _emptyResult
+              ? const Center(
+                  child: Text(
+                    'No departures/arrivals found',
+                    style: TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                )
+              : ListView.separated(
+                  itemCount: _stopovers.length,
+                  itemBuilder: (context, index) => _StopoverDisplay(
+                      stopoverData: _stopovers[index], type: _stopoverType),
+                  separatorBuilder: (context, index) => const Divider(),
+                ),
         ),
       ],
     );
@@ -141,6 +150,7 @@ class _StopoverQueryState extends State<_StopoverQuery> {
     setState(() {
       _inProgress = false;
       _stopovers = decoded[keyword];
+      _emptyResult = _stopovers.isEmpty;
     });
   }
 }
