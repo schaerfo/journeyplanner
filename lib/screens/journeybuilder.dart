@@ -80,7 +80,9 @@ class _AddLegTile extends StatelessWidget {
         if (!context.mounted) {
           return;
         }
-        if (queryType == QueryType.stopover) {
+        if (queryType == null) {
+          return;
+        } else if (queryType == QueryType.stopover) {
           Navigator.push(
               context,
               MaterialPageRoute(
