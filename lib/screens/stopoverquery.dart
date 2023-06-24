@@ -162,9 +162,22 @@ class _StopoverDisplay extends StatelessWidget {
   final StopoverType type;
   final Map stopoverData;
 
+  IconData getIconForProduct() {
+    switch (stopoverData['line']['product']) {
+      case "bus":
+        return Icons.directions_bus;
+      case "tram":
+        return Icons.tram;
+      case "subway":
+        return Icons.subway;
+      default:
+        return Icons.train;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    const icon = Icon(Icons.train);
+    final icon = Icon(getIconForProduct());
     final lineName = stopoverData['line']['name'];
     final text = type == StopoverType.arrival
         ? stopoverData['provenance']
