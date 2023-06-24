@@ -10,6 +10,7 @@ import 'package:intl/intl.dart' as intl;
 import 'dart:convert';
 
 import '../data/station.dart';
+import '../widgets/datetimeselection.dart';
 
 class StopoverQueryPage extends StatelessWidget {
   const StopoverQueryPage({super.key});
@@ -38,6 +39,7 @@ enum StopoverType { arrival, departure }
 class _StopoverQueryState extends State<_StopoverQuery> {
   Station? _selectedStation;
   StopoverType _stopoverType = StopoverType.departure;
+  var _dateTime = DateTime.now();
 
   final _client = http.Client();
   var _inProgress = false;
@@ -78,6 +80,24 @@ class _StopoverQueryState extends State<_StopoverQuery> {
                 onChanged: (StopoverType? type) {
                   _setStopoverType(type);
                 })),
+        ListTile(
+          title: Text(
+            '${intl.DateFormat.yMEd().format(_dateTime)} ${intl.DateFormat.Hm().format(_dateTime)}',
+          ),
+          onTap: () async {
+            var newDateTime = await showModalBottomSheet(
+              context: context,
+              showDragHandle: true,
+              builder: (context) => DateTimeSelection(_dateTime),
+            );
+            if (newDateTime == null) {
+              return;
+            }
+            setState(() {
+              _dateTime = newDateTime;
+            });
+          },
+        ),
         ElevatedButton(
             onPressed: () {
               _fetchStopovers(context);
@@ -138,7 +158,8 @@ class _StopoverQueryState extends State<_StopoverQuery> {
     final uri = Uri(
         scheme: 'https',
         host: 'v6.db.transport.rest',
-        path: 'stops/${_selectedStation!.id}/$keyword');
+        path: 'stops/${_selectedStation!.id}/$keyword',
+        queryParameters: {'when': _dateTime.toIso8601String()});
     setState(() {
       _inProgress = true;
     });
@@ -183,7 +204,7 @@ class _StopoverDisplay extends StatelessWidget {
     final text = type == StopoverType.arrival
         ? stopoverData['provenance']
         : stopoverData['direction'];
-    final time = DateTime.parse(stopoverData['when']);
+    final time = DateTime.parse(stopoverData['plannedWhen']);
 
     return Row(
       children: [
