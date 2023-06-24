@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'package:async/async.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart' as intl;
 
 import 'dart:convert';
 
@@ -182,9 +183,13 @@ class _StopoverDisplay extends StatelessWidget {
     final text = type == StopoverType.arrival
         ? stopoverData['provenance']
         : stopoverData['direction'];
+    final time = DateTime.parse(stopoverData['when']);
 
     return Row(
-      children: [icon, Text('$lineName $text')],
+      children: [
+        icon,
+        Text('${intl.DateFormat.Hm().format(time)} $lineName $text'),
+      ],
     );
   }
 }
