@@ -9,8 +9,10 @@ import 'package:intl/intl.dart' as intl;
 
 import 'dart:convert';
 
+import '../data/modeselection.dart';
 import '../data/station.dart';
 import '../widgets/datetimeselection.dart';
+import '../widgets/modeselection.dart';
 
 class StopoverQueryPage extends StatelessWidget {
   const StopoverQueryPage({super.key});
@@ -40,6 +42,7 @@ class _StopoverQueryState extends State<_StopoverQuery> {
   Station? _selectedStation;
   StopoverType _stopoverType = StopoverType.departure;
   var _dateTime = DateTime.now();
+  var _modeSelection = ModeSelection();
 
   final _client = http.Client();
   var _inProgress = false;
@@ -95,6 +98,22 @@ class _StopoverQueryState extends State<_StopoverQuery> {
             }
             setState(() {
               _dateTime = newDateTime;
+            });
+          },
+        ),
+        ListTile(
+          title: Text(_modeSelection.format()),
+          onTap: () async {
+            final newSelection = await showModalBottomSheet(
+              context: context,
+              showDragHandle: true,
+              builder: (context) => ModeSelectionWidget(_modeSelection),
+            );
+            if (newSelection == null) {
+              return;
+            }
+            setState(() {
+              _modeSelection = newSelection;
             });
           },
         ),
@@ -156,10 +175,23 @@ class _StopoverQueryState extends State<_StopoverQuery> {
     final keyword =
         _stopoverType == StopoverType.arrival ? 'arrivals' : 'departures';
     final uri = Uri(
-        scheme: 'https',
-        host: 'v6.db.transport.rest',
-        path: 'stops/${_selectedStation!.id}/$keyword',
-        queryParameters: {'when': _dateTime.toIso8601String()});
+      scheme: 'https',
+      host: 'v6.db.transport.rest',
+      path: 'stops/${_selectedStation!.id}/$keyword',
+      queryParameters: {
+        'when': _dateTime.toIso8601String(),
+        'nationalExpress': _modeSelection.highSpeed.toString(),
+        'national': _modeSelection.longDistance.toString(),
+        'regionalExpress': _modeSelection.regional.toString(),
+        'regional': _modeSelection.local.toString(),
+        'suburban': _modeSelection.suburban.toString(),
+        'bus': _modeSelection.bus.toString(),
+        'ferry': _modeSelection.ferry.toString(),
+        'subway': _modeSelection.metro.toString(),
+        'tram': _modeSelection.tram.toString(),
+        'taxi': _modeSelection.groupTaxi.toString(),
+      },
+    );
     setState(() {
       _inProgress = true;
     });
