@@ -41,11 +41,9 @@ class StopoverDisplay extends StatelessWidget {
         : stopoverData['direction'];
     final time = DateTime.parse(stopoverData['plannedWhen']);
 
-    return Row(
-      children: [
-        icon,
-        Text('${intl.DateFormat.Hm().format(time)} $lineName $text'),
-      ],
+    return ListTile(
+      leading: icon,
+      title: Text('${intl.DateFormat.Hm().format(time)} $lineName $text'),
     );
   }
 }
