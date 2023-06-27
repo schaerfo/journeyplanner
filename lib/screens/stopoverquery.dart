@@ -13,6 +13,7 @@ import '../data/station.dart';
 import '../widgets/datetimeselection.dart';
 import '../widgets/modeselection.dart';
 import '../widgets/stationsearch.dart';
+import '../widgets/stopoverdisplay.dart';
 
 class StopoverQueryPage extends StatelessWidget {
   const StopoverQueryPage({super.key});
@@ -35,8 +36,6 @@ class _StopoverQuery extends StatefulWidget {
   @override
   State<_StopoverQuery> createState() => _StopoverQueryState();
 }
-
-enum StopoverType { arrival, departure }
 
 class _StopoverQueryState extends State<_StopoverQuery> {
   Station? _selectedStation;
@@ -134,7 +133,7 @@ class _StopoverQueryState extends State<_StopoverQuery> {
                 )
               : ListView.separated(
                   itemCount: _stopovers.length,
-                  itemBuilder: (context, index) => _StopoverDisplay(
+                  itemBuilder: (context, index) => StopoverDisplay(
                       stopoverData: _stopovers[index], type: _stopoverType),
                   separatorBuilder: (context, index) => const Divider(),
                 ),
@@ -206,43 +205,5 @@ class _StopoverQueryState extends State<_StopoverQuery> {
       _stopovers = decoded[keyword];
       _emptyResult = _stopovers.isEmpty;
     });
-  }
-}
-
-class _StopoverDisplay extends StatelessWidget {
-  const _StopoverDisplay(
-      {super.key, required this.stopoverData, required this.type});
-
-  final StopoverType type;
-  final Map stopoverData;
-
-  IconData getIconForProduct() {
-    switch (stopoverData['line']['product']) {
-      case "bus":
-        return Icons.directions_bus;
-      case "tram":
-        return Icons.tram;
-      case "subway":
-        return Icons.subway;
-      default:
-        return Icons.train;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final icon = Icon(getIconForProduct());
-    final lineName = stopoverData['line']['name'];
-    final text = type == StopoverType.arrival
-        ? stopoverData['provenance']
-        : stopoverData['direction'];
-    final time = DateTime.parse(stopoverData['plannedWhen']);
-
-    return Row(
-      children: [
-        icon,
-        Text('${intl.DateFormat.Hm().format(time)} $lineName $text'),
-      ],
-    );
   }
 }
