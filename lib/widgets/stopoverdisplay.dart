@@ -22,6 +22,11 @@ class StopoverDisplay extends StatelessWidget {
         return Icons.tram;
       case "subway":
         return Icons.subway;
+      case "suburban":
+        return Icons.directions_transit;
+      case "national":
+      case "nationalExpress":
+        return Icons.directions_train;
       default:
         return Icons.train;
     }
