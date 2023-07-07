@@ -13,7 +13,7 @@ import '../data/station.dart';
 import '../widgets/datetimeselection.dart';
 import '../widgets/modeselection.dart';
 import '../widgets/stationsearch.dart';
-import '../widgets/stopoverdisplay.dart';
+import '../widgets/linedisplay.dart';
 
 class StopoverQueryPage extends StatelessWidget {
   const StopoverQueryPage({super.key});
@@ -29,6 +29,8 @@ class StopoverQueryPage extends StatelessWidget {
     );
   }
 }
+
+enum StopoverType { arrival, departure }
 
 class _StopoverQuery extends StatefulWidget {
   const _StopoverQuery();
@@ -133,8 +135,20 @@ class _StopoverQueryState extends State<_StopoverQuery> {
                 )
               : ListView.separated(
                   itemCount: _stopovers.length,
-                  itemBuilder: (context, index) => StopoverDisplay(
-                      stopoverData: _stopovers[index], type: _stopoverType),
+                  itemBuilder: (context, index) {
+                    final lineName = _stopovers[index]['line']['name'];
+                    final text = _stopoverType == StopoverType.arrival
+                        ? _stopovers[index]['provenance']
+                        : _stopovers[index]['direction'];
+                    final time =
+                        DateTime.parse(_stopovers[index]['plannedWhen']);
+                    return LineDisplay(
+                      id: _stopovers[index]['tripId'],
+                      product: _stopovers[index]['line']['product'],
+                      title: Text(
+                          '${intl.DateFormat.Hm().format(time)} $lineName $text'),
+                    );
+                  },
                   separatorBuilder: (context, index) => const Divider(),
                 ),
         ),

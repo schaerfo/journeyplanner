@@ -8,25 +8,44 @@ import 'package:intl/intl.dart' as intl;
 
 import 'dart:convert';
 
-enum StopoverType { arrival, departure }
+class LineDisplay extends StatefulWidget {
+  const LineDisplay(
+      {super.key,
+      required this.id,
+      required this.product,
+      required this.title});
 
-class StopoverDisplay extends StatefulWidget {
-  const StopoverDisplay(
-      {super.key, required this.stopoverData, required this.type});
-
-  final StopoverType type;
-  final Map stopoverData;
+  final String id;
+  final String product;
+  final Widget title;
 
   @override
-  State<StopoverDisplay> createState() => _StopoverDisplayState();
+  State<LineDisplay> createState() => _LineDisplayState();
 }
 
-class _StopoverDisplayState extends State<StopoverDisplay> {
+class _LineDisplayState extends State<LineDisplay> {
   final _client = http.Client();
   List? _lineRun;
 
+  void _fetchLineRun() async {
+    final uri = Uri(
+      scheme: 'https',
+      host: 'v6.db.transport.rest',
+      path: 'trips/${widget.id}',
+    );
+    final response = await _client.get(uri);
+    if (response.statusCode != 200) {
+      print("Error: HTTP status ${response.statusCode}");
+      return;
+    }
+    final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+    setState(() {
+      _lineRun = decoded['trip']['stopovers'];
+    });
+  }
+
   IconData getIconForProduct() {
-    switch (widget.stopoverData['line']['product']) {
+    switch (widget.product) {
       case "bus":
         return Icons.directions_bus;
       case "tram":
@@ -43,37 +62,15 @@ class _StopoverDisplayState extends State<StopoverDisplay> {
     }
   }
 
-  void _fetchLineRun() async {
-    final uri = Uri(
-      scheme: 'https',
-      host: 'v6.db.transport.rest',
-      path: 'trips/${widget.stopoverData['tripId']}',
-    );
-    final response = await _client.get(uri);
-    if (response.statusCode != 200) {
-      print("Error: HTTP status ${response.statusCode}");
-      return;
-    }
-    final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-    setState(() {
-      _lineRun = decoded['trip']['stopovers'];
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final icon = Icon(getIconForProduct());
-    final lineName = widget.stopoverData['line']['name'];
-    final text = widget.type == StopoverType.arrival
-        ? widget.stopoverData['provenance']
-        : widget.stopoverData['direction'];
-    final time = DateTime.parse(widget.stopoverData['plannedWhen']);
 
     return Theme(
       data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
         leading: icon,
-        title: Text('${intl.DateFormat.Hm().format(time)} $lineName $text'),
+        title: widget.title,
         onExpansionChanged: (value) {
           if (value) {
             _fetchLineRun();
