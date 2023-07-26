@@ -10,6 +10,11 @@ class AppState with ChangeNotifier {
 
   int get journeyCount => _journeys.length;
 
+  void addJourney(Journey journey) {
+    _journeys.add(journey);
+    notifyListeners();
+  }
+
   Journey createJourney() {
     final result = Journey();
     _journeys.add(result);

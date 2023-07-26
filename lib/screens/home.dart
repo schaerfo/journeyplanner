@@ -21,14 +21,18 @@ class HomeScreenPage extends StatelessWidget {
       body: _HomeScreen(),
       floatingActionButton: FloatingActionButton(
         tooltip: 'Create new journey',
-        onPressed: () {
+        onPressed: () async {
           var state = Provider.of<AppState>(context, listen: false);
-          final journey = state.createJourney();
-          Navigator.push(
+          final journey = Journey();
+          final success = await Navigator.push(
               context,
               MaterialPageRoute(
                   builder: (context) => ChangeNotifierProvider<Journey>.value(
                       value: journey, child: const JourneyBuilderPage())));
+          if (success == null || !success) {
+            return;
+          }
+          state.addJourney(journey);
         },
         child: const Icon(Icons.add),
       ),

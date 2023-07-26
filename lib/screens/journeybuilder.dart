@@ -13,6 +13,13 @@ class JourneyBuilderPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          IconButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              icon: const Icon(Icons.check))
+        ],
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Edit Journey'),
       ),
