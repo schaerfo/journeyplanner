@@ -3,4 +3,8 @@
 
 import 'package:flutter/material.dart';
 
-class Leg with ChangeNotifier {}
+import 'layover.dart';
+
+class Leg with ChangeNotifier {
+  final _layovers = <Layover>[];
+}
