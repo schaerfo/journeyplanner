@@ -5,18 +5,25 @@ import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart' as intl;
+import 'package:journeyplanner_fl/data/product.dart';
 
 import 'dart:convert';
 
+import '../data/leg.dart';
+
 class LineDisplay extends StatefulWidget {
-  const LineDisplay(
+  LineDisplay({super.key, required Leg line, required this.title})
+      : id = line.id,
+        product = line.product;
+
+  const LineDisplay.fromId(
       {super.key,
       required this.id,
       required this.product,
       required this.title});
 
   final String id;
-  final String product;
+  final Product product;
   final Widget title;
 
   @override
@@ -46,16 +53,16 @@ class _LineDisplayState extends State<LineDisplay> {
 
   IconData getIconForProduct() {
     switch (widget.product) {
-      case "bus":
+      case Product.bus:
         return Icons.directions_bus;
-      case "tram":
+      case Product.tram:
         return Icons.tram;
-      case "subway":
+      case Product.metro:
         return Icons.subway;
-      case "suburban":
+      case Product.suburban:
         return Icons.directions_transit;
-      case "national":
-      case "nationalExpress":
+      case Product.longDistance:
+      case Product.highSpeed:
         return Icons.directions_train;
       default:
         return Icons.train;

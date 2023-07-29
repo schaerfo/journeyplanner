@@ -9,6 +9,7 @@ import 'package:intl/intl.dart' as intl;
 import 'dart:convert';
 
 import '../data/modeselection.dart';
+import '../data/product.dart';
 import '../data/station.dart';
 import '../widgets/datetimeselection.dart';
 import '../widgets/modeselection.dart';
@@ -142,9 +143,10 @@ class _StopoverQueryState extends State<_StopoverQuery> {
                         : _stopovers[index]['direction'];
                     final time =
                         DateTime.parse(_stopovers[index]['plannedWhen']);
-                    return LineDisplay(
+                    return LineDisplay.fromId(
                       id: _stopovers[index]['tripId'],
-                      product: _stopovers[index]['line']['product'],
+                      product:
+                          _convertProduct(_stopovers[index]['line']['product']),
                       title: Text(
                           '${intl.DateFormat.Hm().format(time)} $lineName $text'),
                     );
@@ -154,6 +156,33 @@ class _StopoverQueryState extends State<_StopoverQuery> {
         ),
       ],
     );
+  }
+
+  Product _convertProduct(String product) {
+    switch (product) {
+      case 'taxi':
+        return Product.groupTaxi;
+      case 'ferry':
+        return Product.ferry;
+      case 'bus':
+        return Product.bus;
+      case 'tram':
+        return Product.tram;
+      case 'subway':
+        return Product.metro;
+      case 'suburban':
+        return Product.suburban;
+      case 'regional':
+        return Product.local;
+      case 'regionalExpress':
+        return Product.regional;
+      case 'national':
+        return Product.longDistance;
+      case 'nationalExpress':
+        return Product.highSpeed;
+      default:
+        throw FormatException('Unknown product: $product');
+    }
   }
 
   void _openStationSearch(BuildContext context) async {

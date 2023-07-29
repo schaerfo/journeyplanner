@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2023 Christian Schärf
 
-import 'dart:convert';
+import 'dart:io';
 
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:journeyplanner_fl/backend/db_transport_rest.dart';
 
+import '../data/leg.dart';
 import '../widgets/linedisplay.dart';
 
 class LineQueryPage extends StatelessWidget {
@@ -32,9 +33,9 @@ class _LineQuery extends StatefulWidget {
 class _LineQueryState extends State<_LineQuery> {
   var _searchInProgress = false;
   var _emptyResult = false;
-  var _lines = [];
+  var _lines = <Leg>[];
 
-  final _client = http.Client();
+  final _backend = DbTransportRestBackend();
   var _query = "";
   late RestartableTimer _timer;
 
@@ -47,36 +48,24 @@ class _LineQueryState extends State<_LineQuery> {
   }
 
   void _queryLines(String query) async {
-    final now = DateTime.now();
-    var uri = Uri(
-      scheme: 'https',
-      host: 'v6.db.transport.rest',
-      path: 'trips',
-      queryParameters: {
-        'query': query,
-        'onlyCurrentlyRunning': false.toString(),
-        'fromWhen': DateTime(now.year, now.month, now.day).toIso8601String(),
-        'untilWhen': DateTime(now.year, now.month, now.day, 23, 59, 59)
-            .toIso8601String(),
-      },
-    );
     setState(() {
       _searchInProgress = true;
       _lines.clear();
     });
-    var response = await _client.get(uri);
-    if (response.statusCode != 200) {
-      print("Error: HTTP status ${response.statusCode}");
+    List<Leg> response;
+    try {
+      response = await _backend.findLines(query);
+    } on HttpException catch (e) {
+      print(e.message);
       setState(() {
         _searchInProgress = false;
         _lines.clear();
       });
       return;
     }
-    var decoded = jsonDecode(utf8.decode(response.bodyBytes));
     setState(() {
       _searchInProgress = false;
-      _lines = decoded['trips'];
+      _lines = response;
       _emptyResult = _lines.isEmpty;
     });
   }
@@ -114,9 +103,8 @@ class _LineQueryState extends State<_LineQuery> {
               : ListView.separated(
                   itemCount: _lines.length,
                   itemBuilder: (context, index) => LineDisplay(
-                    id: _lines[index]['id'],
-                    product: _lines[index]['line']['product'],
-                    title: Text(_lines[index]['line']['name']),
+                    line: _lines[index],
+                    title: Text(_lines[index].lineName),
                   ),
                   separatorBuilder: (context, _) => const Divider(),
                 ),
