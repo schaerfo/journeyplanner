@@ -5,18 +5,22 @@ import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart' as intl;
 import 'package:journeyplanner_fl/data/product.dart';
+import 'package:journeyplanner_fl/data/stopover.dart';
 
 import '../backend/db_transport_rest.dart';
 import '../data/leg.dart';
 
 class LineDisplay extends StatefulWidget {
-  const LineDisplay({super.key, required this.line, required this.title});
+  const LineDisplay({super.key, required this.line});
 
   final Leg line;
-  final Widget title;
 
   @override
   State<LineDisplay> createState() => _LineDisplayState();
+
+  Widget title() {
+    return Text(line.lineName);
+  }
 }
 
 class _LineDisplayState extends State<LineDisplay> {
@@ -53,7 +57,7 @@ class _LineDisplayState extends State<LineDisplay> {
       data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
         leading: icon,
-        title: widget.title,
+        title: widget.title(),
         onExpansionChanged: (value) {
           if (value) {
             _fetchLineRun();
@@ -73,5 +77,20 @@ class _LineDisplayState extends State<LineDisplay> {
             : <Widget>[const CircularProgressIndicator()],
       ),
     );
+  }
+}
+
+class StopoverDisplay extends LineDisplay {
+  final Stopover stopover;
+
+  StopoverDisplay({super.key, required this.stopover})
+      : super(line: stopover.leg);
+
+  @override
+  Widget title() {
+    final lineName = stopover.leg.lineName;
+    final text = stopover.where();
+    final time = stopover.scheduledWhen();
+    return Text('${intl.DateFormat.Hm().format(time)} $lineName $text');
   }
 }

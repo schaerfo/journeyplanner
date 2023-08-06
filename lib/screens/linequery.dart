@@ -104,7 +104,6 @@ class _LineQueryState extends State<_LineQuery> {
                   itemCount: _lines.length,
                   itemBuilder: (context, index) => LineDisplay(
                     line: _lines[index],
-                    title: Text(_lines[index].lineName),
                   ),
                   separatorBuilder: (context, _) => const Divider(),
                 ),

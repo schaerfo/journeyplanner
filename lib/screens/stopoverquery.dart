@@ -137,14 +137,8 @@ class _StopoverQueryState extends State<_StopoverQuery> {
               : ListView.separated(
                   itemCount: _stopovers.length,
                   itemBuilder: (context, index) {
-                    final stopover = _stopovers[index];
-                    final lineName = stopover.leg.lineName;
-                    final text = stopover.where();
-                    final time = stopover.scheduledWhen();
-                    return LineDisplay(
-                      line: stopover.leg,
-                      title: Text(
-                          '${intl.DateFormat.Hm().format(time)} $lineName $text'),
+                    return StopoverDisplay(
+                      stopover: _stopovers[index],
                     );
                   },
                   separatorBuilder: (context, index) => const Divider(),
