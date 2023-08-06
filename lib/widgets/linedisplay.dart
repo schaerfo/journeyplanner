@@ -16,12 +16,6 @@ class LineDisplay extends StatefulWidget {
       : id = line.id,
         product = line.product;
 
-  const LineDisplay.fromId(
-      {super.key,
-      required this.id,
-      required this.product,
-      required this.title});
-
   final String id;
   final Product product;
   final Widget title;

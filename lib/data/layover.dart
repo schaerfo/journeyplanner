@@ -4,6 +4,7 @@
 import 'package:journeyplanner_fl/data/station.dart';
 
 class Layover {
+  // A layover is when you are in a train and it stops at a station
   final Station station;
   final DateTime? scheduledArrival;
   final DateTime? scheduledDeparture;

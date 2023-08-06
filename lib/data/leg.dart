@@ -13,7 +13,9 @@ class Leg with ChangeNotifier {
   String lineName;
   Product product;
 
-  Leg(this.id, this.lineName, this.product, Layover origin,
+  Leg(this.id, this.lineName, this.product);
+
+  Leg.fromEndpoints(this.id, this.lineName, this.product, Layover origin,
       Layover destination) {
     _layovers.addAll([origin, destination]);
   }

@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2023 Christian Schärf
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart' as intl;
+import 'package:journeyplanner_fl/data/stopover.dart';
 
-import 'dart:convert';
-
+import '../backend/db_transport_rest.dart';
 import '../data/modeselection.dart';
-import '../data/product.dart';
 import '../data/station.dart';
 import '../widgets/datetimeselection.dart';
 import '../widgets/modeselection.dart';
@@ -46,9 +46,9 @@ class _StopoverQueryState extends State<_StopoverQuery> {
   var _dateTime = DateTime.now();
   var _modeSelection = ModeSelection();
 
-  final _client = http.Client();
+  final _backend = DbTransportRestBackend();
   var _inProgress = false;
-  var _stopovers = [];
+  var _stopovers = <Stopover>[];
   // Using _stopovers.isEmpty is not possible since that would be true initially
   var _emptyResult = false;
 
@@ -137,16 +137,12 @@ class _StopoverQueryState extends State<_StopoverQuery> {
               : ListView.separated(
                   itemCount: _stopovers.length,
                   itemBuilder: (context, index) {
-                    final lineName = _stopovers[index]['line']['name'];
-                    final text = _stopoverType == StopoverType.arrival
-                        ? _stopovers[index]['provenance']
-                        : _stopovers[index]['direction'];
-                    final time =
-                        DateTime.parse(_stopovers[index]['plannedWhen']);
-                    return LineDisplay.fromId(
-                      id: _stopovers[index]['tripId'],
-                      product:
-                          _convertProduct(_stopovers[index]['line']['product']),
+                    final stopover = _stopovers[index];
+                    final lineName = stopover.leg.lineName;
+                    final text = stopover.where();
+                    final time = stopover.scheduledWhen();
+                    return LineDisplay(
+                      line: stopover.leg,
                       title: Text(
                           '${intl.DateFormat.Hm().format(time)} $lineName $text'),
                     );
@@ -156,33 +152,6 @@ class _StopoverQueryState extends State<_StopoverQuery> {
         ),
       ],
     );
-  }
-
-  Product _convertProduct(String product) {
-    switch (product) {
-      case 'taxi':
-        return Product.groupTaxi;
-      case 'ferry':
-        return Product.ferry;
-      case 'bus':
-        return Product.bus;
-      case 'tram':
-        return Product.tram;
-      case 'subway':
-        return Product.metro;
-      case 'suburban':
-        return Product.suburban;
-      case 'regional':
-        return Product.local;
-      case 'regionalExpress':
-        return Product.regional;
-      case 'national':
-        return Product.longDistance;
-      case 'nationalExpress':
-        return Product.highSpeed;
-      default:
-        throw FormatException('Unknown product: $product');
-    }
   }
 
   void _openStationSearch(BuildContext context) async {
@@ -214,38 +183,25 @@ class _StopoverQueryState extends State<_StopoverQuery> {
       return;
     }
 
-    final keyword =
-        _stopoverType == StopoverType.arrival ? 'arrivals' : 'departures';
-    final uri = Uri(
-      scheme: 'https',
-      host: 'v6.db.transport.rest',
-      path: 'stops/${_selectedStation!.id}/$keyword',
-      queryParameters: {
-        'when': _dateTime.toIso8601String(),
-        'nationalExpress': _modeSelection.highSpeed.toString(),
-        'national': _modeSelection.longDistance.toString(),
-        'regionalExpress': _modeSelection.regional.toString(),
-        'regional': _modeSelection.local.toString(),
-        'suburban': _modeSelection.suburban.toString(),
-        'bus': _modeSelection.bus.toString(),
-        'ferry': _modeSelection.ferry.toString(),
-        'subway': _modeSelection.metro.toString(),
-        'tram': _modeSelection.tram.toString(),
-        'taxi': _modeSelection.groupTaxi.toString(),
-      },
-    );
     setState(() {
       _inProgress = true;
     });
-    var response = await _client.get(uri);
-    if (response.statusCode != 200) {
-      print("Error: HTTP status ${response.statusCode}");
+    List<Stopover> response;
+    try {
+      response = await _backend.findStopovers(
+          _selectedStation!, _dateTime, _modeSelection,
+          departure: _stopoverType == StopoverType.departure);
+    } on HttpException catch (e) {
+      print(e.message);
+      setState(() {
+        _inProgress = false;
+        _stopovers.clear();
+      });
       return;
     }
-    var decoded = jsonDecode(utf8.decode(response.bodyBytes));
     setState(() {
       _inProgress = false;
-      _stopovers = decoded[keyword];
+      _stopovers = response;
       _emptyResult = _stopovers.isEmpty;
     });
   }
