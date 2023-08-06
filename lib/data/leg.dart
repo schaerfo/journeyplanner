@@ -8,6 +8,10 @@ import 'layover.dart';
 
 class Leg with ChangeNotifier {
   final _layovers = <Layover>[];
+  var _completed = false;
+
+  get isCompleted => _completed;
+  Iterable<Layover> get layovers => _layovers;
 
   String id;
   String lineName;
@@ -18,5 +22,12 @@ class Leg with ChangeNotifier {
   Leg.fromEndpoints(this.id, this.lineName, this.product, Layover origin,
       Layover destination) {
     _layovers.addAll([origin, destination]);
+  }
+
+  void complete(Iterable<Layover> layovers) {
+    _layovers.clear();
+    _layovers.addAll(layovers);
+    _completed = true;
+    notifyListeners();
   }
 }

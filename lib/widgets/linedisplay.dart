@@ -3,21 +3,16 @@
 
 import 'package:flutter/material.dart';
 
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart' as intl;
 import 'package:journeyplanner_fl/data/product.dart';
 
-import 'dart:convert';
-
+import '../backend/db_transport_rest.dart';
 import '../data/leg.dart';
 
 class LineDisplay extends StatefulWidget {
-  LineDisplay({super.key, required Leg line, required this.title})
-      : id = line.id,
-        product = line.product;
+  const LineDisplay({super.key, required this.line, required this.title});
 
-  final String id;
-  final Product product;
+  final Leg line;
   final Widget title;
 
   @override
@@ -25,28 +20,15 @@ class LineDisplay extends StatefulWidget {
 }
 
 class _LineDisplayState extends State<LineDisplay> {
-  final _client = http.Client();
-  List? _lineRun;
+  final _backend = DbTransportRestBackend();
 
   void _fetchLineRun() async {
-    final uri = Uri(
-      scheme: 'https',
-      host: 'v6.db.transport.rest',
-      path: 'trips/${widget.id}',
-    );
-    final response = await _client.get(uri);
-    if (response.statusCode != 200) {
-      print("Error: HTTP status ${response.statusCode}");
-      return;
-    }
-    final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-    setState(() {
-      _lineRun = decoded['trip']['stopovers'];
-    });
+    await _backend.fetchLineRun(widget.line);
+    setState(() {});
   }
 
   IconData getIconForProduct() {
-    switch (widget.product) {
+    switch (widget.line.product) {
       case Product.bus:
         return Icons.directions_bus;
       case Product.tram:
@@ -77,18 +59,18 @@ class _LineDisplayState extends State<LineDisplay> {
             _fetchLineRun();
           }
         },
-        children: _lineRun == null
-            ? <Widget>[const CircularProgressIndicator()]
-            : <Widget>[
-                for (final currStopover in _lineRun!)
+        children: widget.line.isCompleted
+            ? <Widget>[
+                for (final currStopover in widget.line.layovers)
                   ListTile(
-                    leading: currStopover['plannedDeparture'] == null
+                    leading: currStopover.scheduledDeparture == null
                         ? null
-                        : Text(intl.DateFormat.Hm().format(
-                            DateTime.parse(currStopover['plannedDeparture']))),
-                    title: Text(currStopover['stop']['name']),
+                        : Text(intl.DateFormat.Hm()
+                            .format(currStopover.scheduledDeparture!)),
+                    title: Text(currStopover.station.name),
                   )
-              ],
+              ]
+            : <Widget>[const CircularProgressIndicator()],
       ),
     );
   }

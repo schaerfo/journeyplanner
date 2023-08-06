@@ -72,6 +72,22 @@ class DbTransportRestBackend {
         .toList();
   }
 
+  Future<void> fetchLineRun(Leg line) async {
+    final uri = Uri(
+      scheme: 'https',
+      host: 'v6.db.transport.rest',
+      path: 'trips/${line.id}',
+    );
+    final response = await _client.get(uri);
+    if (response.statusCode != 200) {
+      throw HttpException('Error: HTTP status ${response.statusCode}');
+    }
+    final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+    var layovers =
+        (decoded['trip']['stopovers'] as List).map((e) => _convertLayover(e));
+    line.complete(layovers);
+  }
+
   Leg _convertLine(Map trip) {
     final id = trip['id'];
     final name = trip['line']['name'];
@@ -136,5 +152,17 @@ class DbTransportRestBackend {
 
   Station _convertStation(Map station) {
     return Station(id: station['id'], name: station['name']);
+  }
+
+  Layover _convertLayover(Map layover) {
+    final station = _convertStation(layover['stop']);
+    return Layover(
+        station: station,
+        scheduledDeparture: layover['plannedDeparture'] == null
+            ? null
+            : DateTime.parse(layover['plannedDeparture']),
+        scheduledArrival: layover['plannedArrival'] == null
+            ? null
+            : DateTime.parse(layover['plannedArrival']));
   }
 }
