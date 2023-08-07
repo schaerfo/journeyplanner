@@ -137,9 +137,15 @@ class _StopoverQueryState extends State<_StopoverQuery> {
               : ListView.separated(
                   itemCount: _stopovers.length,
                   itemBuilder: (context, index) {
-                    return StopoverDisplay(
-                      stopover: _stopovers[index],
-                    );
+                    return _stopoverType == StopoverType.departure
+                        ? StopoverDisplay(
+                            stopover: _stopovers[index],
+                            start: _selectedStation,
+                          )
+                        : StopoverDisplay(
+                            stopover: _stopovers[index],
+                            end: _selectedStation,
+                          );
                   },
                   separatorBuilder: (context, index) => const Divider(),
                 ),

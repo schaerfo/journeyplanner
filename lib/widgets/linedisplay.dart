@@ -9,11 +9,14 @@ import 'package:journeyplanner_fl/data/stopover.dart';
 
 import '../backend/db_transport_rest.dart';
 import '../data/leg.dart';
+import '../data/station.dart';
 
 class LineDisplay extends StatefulWidget {
-  const LineDisplay({super.key, required this.line});
+  const LineDisplay({super.key, required this.line, this.start, this.end});
 
   final Leg line;
+  final Station? start;
+  final Station? end;
 
   @override
   State<LineDisplay> createState() => _LineDisplayState();
@@ -64,26 +67,43 @@ class _LineDisplayState extends State<LineDisplay> {
           }
         },
         children: widget.line.isCompleted
-            ? <Widget>[
-                for (final currStopover in widget.line.layovers)
-                  ListTile(
-                    leading: currStopover.scheduledDeparture == null
-                        ? null
-                        : Text(intl.DateFormat.Hm()
-                            .format(currStopover.scheduledDeparture!)),
-                    title: Text(currStopover.station.name),
-                  )
-              ]
+            ? _layoverListTiles(context)
             : <Widget>[const CircularProgressIndicator()],
       ),
     );
+  }
+
+  List<Widget> _layoverListTiles(BuildContext context) {
+    final result = <Widget>[];
+
+    bool active = widget.start == null;
+    for (final currStopover in widget.line.layovers) {
+      if (currStopover.station.id == widget.start?.id && !active) {
+        active = true;
+      }
+      result.add(ListTile(
+        leading: currStopover.scheduledDeparture == null
+            ? null
+            : Text(
+                intl.DateFormat.Hm().format(currStopover.scheduledDeparture!),
+              ),
+        title: Text(
+          currStopover.station.name,
+          style: active ? null : const TextStyle(color: Colors.black45),
+        ),
+      ));
+      if (currStopover.station.id == widget.end?.id && active) {
+        active = false;
+      }
+    }
+    return result;
   }
 }
 
 class StopoverDisplay extends LineDisplay {
   final Stopover stopover;
 
-  StopoverDisplay({super.key, required this.stopover})
+  StopoverDisplay({super.key, required this.stopover, super.start, super.end})
       : super(line: stopover.leg);
 
   @override
