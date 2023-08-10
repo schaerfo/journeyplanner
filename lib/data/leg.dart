@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:journeyplanner_fl/data/product.dart';
+import 'package:journeyplanner_fl/data/station.dart';
 
 import 'layover.dart';
 
@@ -29,5 +30,22 @@ class Leg with ChangeNotifier {
     _layovers.addAll(layovers);
     _completed = true;
     notifyListeners();
+  }
+
+  Leg between(Station start, Station end) {
+    final result = Leg(id, lineName, product);
+    bool hitStart = false;
+    for (var value in layovers) {
+      if (value.station.id == start.id) {
+        hitStart = true;
+      }
+      if (hitStart) {
+        result._layovers.add(value);
+      }
+      if (value.station.id == end.id) {
+        break;
+      }
+    }
+    return result;
   }
 }

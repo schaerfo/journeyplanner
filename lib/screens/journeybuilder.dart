@@ -6,6 +6,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:journeyplanner_fl/screens/stopoverquery.dart';
 import 'package:journeyplanner_fl/screens/linequery.dart';
 
+import '../data/leg.dart';
+
 class JourneyBuilderPage extends StatelessWidget {
   const JourneyBuilderPage({super.key});
 
@@ -88,22 +90,27 @@ class _AddLegTile extends StatelessWidget {
         if (!context.mounted) {
           return;
         }
+        Leg? newLeg;
         if (queryType == null) {
           return;
         } else if (queryType == QueryType.stopover) {
-          Navigator.push(
+          newLeg = await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => const StopoverQueryPage(),
               ));
         } else if (queryType == QueryType.line) {
-          Navigator.push(
+          newLeg = await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const LineQueryPage()),
           );
         } else {
           ScaffoldMessenger.of(context)
               .showSnackBar(const SnackBar(content: Text('Coming soon')));
+        }
+        if (newLeg != null) {
+          print(
+              'Going from ${newLeg.layovers.first.station.name} to ${newLeg.layovers.last.station.name}');
         }
       },
     );

@@ -12,11 +12,17 @@ import '../data/leg.dart';
 import '../data/station.dart';
 
 class LineDisplay extends StatefulWidget {
-  const LineDisplay({super.key, required this.line, this.start, this.end});
+  const LineDisplay(
+      {super.key,
+      required this.line,
+      this.start,
+      this.end,
+      this.onSectionSelected});
 
   final Leg line;
   final Station? start;
   final Station? end;
+  final Function(Leg)? onSectionSelected;
 
   @override
   State<LineDisplay> createState() => _LineDisplayState();
@@ -28,6 +34,7 @@ class LineDisplay extends StatefulWidget {
 
 class _LineDisplayState extends State<LineDisplay> {
   final _backend = DbTransportRestBackend();
+  Station? _entry;
 
   void _fetchLineRun() async {
     await _backend.fetchLineRun(widget.line);
@@ -76,10 +83,34 @@ class _LineDisplayState extends State<LineDisplay> {
   List<Widget> _layoverListTiles(BuildContext context) {
     final result = <Widget>[];
 
-    bool active = widget.start == null;
+    bool active = widget.start == null && _entry == null;
     for (final currStopover in widget.line.layovers) {
-      if (currStopover.station.id == widget.start?.id && !active) {
+      if (currStopover.station.id == widget.start?.id ||
+          currStopover.station == _entry) {
         active = true;
+      }
+      Widget? entryExitButton;
+      if (widget.onSectionSelected != null && active) {
+        if (currStopover.station.id == widget.start?.id) {
+          entryExitButton = const Icon(Icons.login);
+        } else if (currStopover.station.id == widget.end?.id) {
+          entryExitButton = const Icon(Icons.logout);
+        } else if (widget.start == null && _entry == null ||
+            currStopover.station == _entry) {
+          entryExitButton = IconButton(
+            onPressed: () {
+              _setEntry(currStopover.station);
+            },
+            icon: const Icon(Icons.login),
+          );
+        } else {
+          entryExitButton = IconButton(
+            onPressed: () {
+              _setExit(currStopover.station);
+            },
+            icon: const Icon(Icons.logout),
+          );
+        }
       }
       result.add(ListTile(
         leading: currStopover.scheduledDeparture == null
@@ -91,6 +122,7 @@ class _LineDisplayState extends State<LineDisplay> {
           currStopover.station.name,
           style: active ? null : const TextStyle(color: Colors.black45),
         ),
+        trailing: entryExitButton,
       ));
       if (currStopover.station.id == widget.end?.id && active) {
         active = false;
@@ -98,12 +130,39 @@ class _LineDisplayState extends State<LineDisplay> {
     }
     return result;
   }
+
+  void _setEntry(Station entry) {
+    if (widget.end != null) {
+      widget.onSectionSelected!(widget.line.between(entry, widget.end!));
+    } else {
+      setState(() {
+        if (_entry == null) {
+          _entry = entry;
+        } else {
+          _entry = null;
+        }
+      });
+    }
+  }
+
+  void _setExit(Station exit) {
+    if (widget.start != null) {
+      widget.onSectionSelected!(widget.line.between(widget.start!, exit));
+    } else {
+      widget.onSectionSelected!(widget.line.between(_entry!, exit));
+    }
+  }
 }
 
 class StopoverDisplay extends LineDisplay {
   final Stopover stopover;
 
-  StopoverDisplay({super.key, required this.stopover, super.start, super.end})
+  StopoverDisplay(
+      {super.key,
+      required this.stopover,
+      super.start,
+      super.end,
+      super.onSectionSelected})
       : super(line: stopover.leg);
 
   @override

@@ -104,6 +104,9 @@ class _LineQueryState extends State<_LineQuery> {
                   itemCount: _lines.length,
                   itemBuilder: (context, index) => LineDisplay(
                     line: _lines[index],
+                    onSectionSelected: (Leg leg) {
+                      Navigator.pop(context, leg);
+                    },
                   ),
                   separatorBuilder: (context, _) => const Divider(),
                 ),

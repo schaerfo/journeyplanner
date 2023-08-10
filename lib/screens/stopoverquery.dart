@@ -9,6 +9,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:journeyplanner_fl/data/stopover.dart';
 
 import '../backend/db_transport_rest.dart';
+import '../data/leg.dart';
 import '../data/modeselection.dart';
 import '../data/station.dart';
 import '../widgets/datetimeselection.dart';
@@ -141,10 +142,16 @@ class _StopoverQueryState extends State<_StopoverQuery> {
                         ? StopoverDisplay(
                             stopover: _stopovers[index],
                             start: _selectedStation,
+                            onSectionSelected: (Leg leg) {
+                              Navigator.pop(context, leg);
+                            },
                           )
                         : StopoverDisplay(
                             stopover: _stopovers[index],
                             end: _selectedStation,
+                            onSectionSelected: (Leg leg) {
+                              Navigator.pop(context, leg);
+                            },
                           );
                   },
                   separatorBuilder: (context, index) => const Divider(),
