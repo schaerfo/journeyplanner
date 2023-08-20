@@ -25,10 +25,14 @@ class HomeScreenPage extends StatelessWidget {
           var state = Provider.of<AppState>(context, listen: false);
           final journey = Journey();
           final success = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => ChangeNotifierProvider<Journey>.value(
-                      value: journey, child: const JourneyBuilderPage())));
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChangeNotifierProvider<Journey>.value(
+                value: journey,
+                child: const JourneyBuilderPage(),
+              ),
+            ),
+          );
           if (success == null || !success) {
             return;
           }
