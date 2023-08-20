@@ -13,6 +13,8 @@ class Leg with ChangeNotifier {
 
   get isCompleted => _completed;
   Iterable<Layover> get layovers => _layovers;
+  Layover get origin => _layovers.first;
+  Layover get destination => _layovers.last;
 
   String id;
   String lineName;

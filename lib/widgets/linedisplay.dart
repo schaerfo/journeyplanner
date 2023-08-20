@@ -8,6 +8,7 @@ import 'package:journeyplanner_fl/data/product.dart';
 import 'package:journeyplanner_fl/data/stopover.dart';
 
 import '../backend/db_transport_rest.dart';
+import '../data/layover.dart';
 import '../data/leg.dart';
 import '../data/station.dart';
 
@@ -171,5 +172,32 @@ class StopoverDisplay extends LineDisplay {
     final text = stopover.where();
     final time = stopover.scheduledWhen();
     return Text('${intl.DateFormat.Hm().format(time)} $lineName $text');
+  }
+}
+
+class LegDisplay extends LineDisplay {
+  final Layover origin;
+  final Layover destination;
+
+  LegDisplay({super.key, required Leg line})
+      : origin = line.origin,
+        destination = line.destination,
+        super(
+          line: line,
+          start: line.origin.station,
+          end: line.destination.station,
+        );
+
+  @override
+  Widget title() {
+    final departureTime =
+        intl.DateFormat.Hm().format(origin.scheduledDeparture!);
+    final departureStation = origin.station.name;
+    final arrivalTime =
+        intl.DateFormat.Hm().format(destination.scheduledArrival!);
+    final arrivalStation = destination.station.name;
+    return Text(
+      '${line.lineName} $departureTime $departureStation - $arrivalTime $arrivalStation',
+    );
   }
 }

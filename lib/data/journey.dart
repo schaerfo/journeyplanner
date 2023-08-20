@@ -13,4 +13,12 @@ class Journey with ChangeNotifier {
   Journey.fromLeg(Leg leg) {
     _legs.add(leg);
   }
+
+  Iterable<Leg> get legs => _legs;
+
+  void setInitialLeg(Leg leg) {
+    assert(_legs.isEmpty);
+    _legs.add(leg);
+    notifyListeners();
+  }
 }

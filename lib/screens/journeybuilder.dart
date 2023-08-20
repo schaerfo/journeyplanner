@@ -3,10 +3,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:journeyplanner_fl/data/journey.dart';
 import 'package:journeyplanner_fl/screens/stopoverquery.dart';
 import 'package:journeyplanner_fl/screens/linequery.dart';
+import 'package:provider/provider.dart';
 
 import '../data/leg.dart';
+import '../widgets/linedisplay.dart';
 
 class JourneyBuilderPage extends StatelessWidget {
   const JourneyBuilderPage({super.key});
@@ -35,12 +38,30 @@ enum QueryType { line, journey, stopover }
 class _JourneyBuilder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const _AddLegTile();
+    final journey = Provider.of<Journey>(context);
+    if (journey.legs.isEmpty) {
+      return _AddLegTile(
+        onLegSelected: (Leg leg) {
+          journey.setInitialLeg(leg);
+        },
+      );
+    } else {
+      return ListView(
+        children: [
+          for (final currLeg in journey.legs)
+            LegDisplay(
+              line: currLeg,
+            ),
+        ],
+      );
+    }
   }
 }
 
 class _AddLegTile extends StatelessWidget {
-  const _AddLegTile();
+  final Function(Leg) onLegSelected;
+
+  const _AddLegTile({required this.onLegSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -109,8 +130,7 @@ class _AddLegTile extends StatelessWidget {
               .showSnackBar(const SnackBar(content: Text('Coming soon')));
         }
         if (newLeg != null) {
-          print(
-              'Going from ${newLeg.layovers.first.station.name} to ${newLeg.layovers.last.station.name}');
+          onLegSelected(newLeg);
         }
       },
     );
