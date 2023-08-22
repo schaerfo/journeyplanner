@@ -8,7 +8,7 @@ import 'journey.dart';
 class AppState with ChangeNotifier {
   final _journeys = <Journey>[];
 
-  int get journeyCount => _journeys.length;
+  Iterable<Journey> get journeys => _journeys;
 
   void addJourney(Journey journey) {
     _journeys.add(journey);

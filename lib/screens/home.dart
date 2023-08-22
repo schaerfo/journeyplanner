@@ -2,6 +2,7 @@
 // Copyright (C) 2023 Christian Schärf
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:journeyplanner_fl/data/journey.dart';
 import 'package:journeyplanner_fl/screens/journeybuilder.dart';
 import 'package:provider/provider.dart';
@@ -48,7 +49,7 @@ class _HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var state = Provider.of<AppState>(context);
-    if (state.journeyCount == 0) {
+    if (state.journeys.isEmpty) {
       return const Center(
         child: Text(
           'No journeys added yet',
@@ -56,7 +57,37 @@ class _HomeScreen extends StatelessWidget {
         ),
       );
     } else {
-      return const Placeholder();
+      return ListView(
+        children: [
+          for (final currJourney in state.journeys)
+            _JourneyDisplay(
+              journey: currJourney,
+            ),
+        ],
+      );
     }
+  }
+}
+
+class _JourneyDisplay extends StatelessWidget {
+  final Journey journey;
+
+  const _JourneyDisplay({
+    required this.journey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final departureTime =
+        intl.DateFormat.Hm().format(journey.origin.scheduledDeparture!);
+    final departureStation = journey.origin.station.name;
+    final arrivalTime =
+        intl.DateFormat.Hm().format(journey.destination.scheduledArrival!);
+    final arrivalStation = journey.destination.station.name;
+    return ListTile(
+      title: Text(
+        '$departureTime $departureStation - $arrivalTime $arrivalStation',
+      ),
+    );
   }
 }

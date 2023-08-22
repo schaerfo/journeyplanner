@@ -3,6 +3,7 @@
 
 import 'package:flutter/widgets.dart';
 
+import 'layover.dart';
 import 'leg.dart';
 
 class Journey with ChangeNotifier {
@@ -15,6 +16,8 @@ class Journey with ChangeNotifier {
   }
 
   Iterable<Leg> get legs => _legs;
+  Layover get origin => _legs.first.origin;
+  Layover get destination => _legs.last.destination;
 
   void setInitialLeg(Leg leg) {
     assert(_legs.isEmpty);
