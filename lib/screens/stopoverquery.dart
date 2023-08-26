@@ -70,22 +70,22 @@ class _StopoverQueryState extends State<_StopoverQuery> {
               _openStationSearch(context);
             },
             child: const Text('Select Station')),
-        ListTile(
-            title: const Text('Arrival'),
-            leading: Radio<StopoverType>(
-                value: StopoverType.arrival,
-                groupValue: _stopoverType,
-                onChanged: (StopoverType? type) {
-                  _setStopoverType(type);
-                })),
-        ListTile(
-            title: const Text('Departure'),
-            leading: Radio<StopoverType>(
-                value: StopoverType.departure,
-                groupValue: _stopoverType,
-                onChanged: (StopoverType? type) {
-                  _setStopoverType(type);
-                })),
+        RadioListTile(
+          title: const Text('Arrival'),
+          value: StopoverType.arrival,
+          groupValue: _stopoverType,
+          onChanged: (StopoverType? type) {
+            _setStopoverType(type);
+          },
+        ),
+        RadioListTile(
+          title: const Text('Departure'),
+          value: StopoverType.departure,
+          groupValue: _stopoverType,
+          onChanged: (StopoverType? type) {
+            _setStopoverType(type);
+          },
+        ),
         ListTile(
           title: Text(
             '${intl.DateFormat.yMEd().format(_dateTime)} ${intl.DateFormat.Hm().format(_dateTime)}',
