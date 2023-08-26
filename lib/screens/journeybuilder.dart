@@ -8,6 +8,7 @@ import 'package:journeyplanner_fl/screens/stopoverquery.dart';
 import 'package:journeyplanner_fl/screens/linequery.dart';
 import 'package:provider/provider.dart';
 
+import '../data/connection.dart';
 import '../data/leg.dart';
 import '../widgets/linedisplay.dart';
 
@@ -48,10 +49,18 @@ class _JourneyBuilder extends StatelessWidget {
     } else {
       return ListView(
         children: [
+          _AddLegTile(
+            onLegSelected: (_) {},
+            connectingTo: Connection.to(journey.origin),
+          ),
           for (final currLeg in journey.legs)
             LegDisplay(
               line: currLeg,
             ),
+          _AddLegTile(
+            onLegSelected: (_) {},
+            connectingTo: Connection.from(journey.destination),
+          ),
         ],
       );
     }
@@ -60,8 +69,9 @@ class _JourneyBuilder extends StatelessWidget {
 
 class _AddLegTile extends StatelessWidget {
   final Function(Leg) onLegSelected;
+  final Connection? connectingTo;
 
-  const _AddLegTile({required this.onLegSelected});
+  const _AddLegTile({required this.onLegSelected, this.connectingTo});
 
   @override
   Widget build(BuildContext context) {
@@ -75,16 +85,17 @@ class _AddLegTile extends StatelessWidget {
           showDragHandle: true,
           builder: (context) => ListView(
             children: [
-              ListTile(
-                leading: SvgPicture.asset(
-                  'assets/icons/line.svg',
-                  colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+              if (connectingTo == null)
+                ListTile(
+                  leading: SvgPicture.asset(
+                    'assets/icons/line.svg',
+                    colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+                  ),
+                  title: const Text('Line'),
+                  onTap: () {
+                    Navigator.pop(context, QueryType.line);
+                  },
                 ),
-                title: const Text('Line'),
-                onTap: () {
-                  Navigator.pop(context, QueryType.line);
-                },
-              ),
               ListTile(
                 leading: SvgPicture.asset(
                   'assets/icons/journey.svg',
@@ -121,7 +132,9 @@ class _AddLegTile extends StatelessWidget {
           newLeg = await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const StopoverQueryPage(),
+                builder: (context) => StopoverQueryPage(
+                  connectingTo: connectingTo,
+                ),
               ));
         } else if (queryType == QueryType.line) {
           newLeg = await Navigator.push(

@@ -9,6 +9,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:journeyplanner_fl/data/stopover.dart';
 
 import '../backend/db_transport_rest.dart';
+import '../data/connection.dart';
 import '../data/leg.dart';
 import '../data/modeselection.dart';
 import '../data/station.dart';
@@ -18,7 +19,9 @@ import '../widgets/stationsearch.dart';
 import '../widgets/linedisplay.dart';
 
 class StopoverQueryPage extends StatelessWidget {
-  const StopoverQueryPage({super.key});
+  final Connection? connectingTo;
+
+  const StopoverQueryPage({super.key, this.connectingTo});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +30,9 @@ class StopoverQueryPage extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Departure/Arrival'),
       ),
-      body: const _StopoverQuery(),
+      body: _StopoverQuery(
+        connectingTo: connectingTo,
+      ),
     );
   }
 }
@@ -35,7 +40,8 @@ class StopoverQueryPage extends StatelessWidget {
 enum StopoverType { arrival, departure }
 
 class _StopoverQuery extends StatefulWidget {
-  const _StopoverQuery();
+  final Connection? connectingTo;
+  const _StopoverQuery({this.connectingTo});
 
   @override
   State<_StopoverQuery> createState() => _StopoverQueryState();
@@ -43,7 +49,7 @@ class _StopoverQuery extends StatefulWidget {
 
 class _StopoverQueryState extends State<_StopoverQuery> {
   Station? _selectedStation;
-  StopoverType _stopoverType = StopoverType.departure;
+  late StopoverType _stopoverType;
   var _dateTime = DateTime.now();
   var _modeSelection = ModeSelection();
 
@@ -52,6 +58,13 @@ class _StopoverQueryState extends State<_StopoverQuery> {
   var _stopovers = <Stopover>[];
   // Using _stopovers.isEmpty is not possible since that would be true initially
   var _emptyResult = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _stopoverType = _connectionType();
+    _selectedStation = widget.connectingTo?.where;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,26 +78,32 @@ class _StopoverQueryState extends State<_StopoverQuery> {
                 style: TextStyle(color: theme.hintColor),
               )
             : Text(_selectedStation!.name),
-        ElevatedButton(
+        if (!_isConnection())
+          ElevatedButton(
             onPressed: () {
               _openStationSearch(context);
             },
-            child: const Text('Select Station')),
+            child: const Text('Select Station'),
+          ),
         RadioListTile(
           title: const Text('Arrival'),
           value: StopoverType.arrival,
           groupValue: _stopoverType,
-          onChanged: (StopoverType? type) {
-            _setStopoverType(type);
-          },
+          onChanged: _isConnection()
+              ? null
+              : (StopoverType? type) {
+                  _setStopoverType(type);
+                },
         ),
         RadioListTile(
           title: const Text('Departure'),
           value: StopoverType.departure,
           groupValue: _stopoverType,
-          onChanged: (StopoverType? type) {
-            _setStopoverType(type);
-          },
+          onChanged: _isConnection()
+              ? null
+              : (StopoverType? type) {
+                  _setStopoverType(type);
+                },
         ),
         ListTile(
           title: Text(
@@ -211,5 +230,22 @@ class _StopoverQueryState extends State<_StopoverQuery> {
       _stopovers = response;
       _emptyResult = _stopovers.isEmpty;
     });
+  }
+
+  bool _isConnection() {
+    return widget.connectingTo != null;
+  }
+
+  StopoverType _connectionType() {
+    if (_isConnection()) {
+      final connection = widget.connectingTo!;
+      if (connection.type == ConnectionType.fromHere) {
+        return StopoverType.departure;
+      } else {
+        return StopoverType.arrival;
+      }
+    } else {
+      return StopoverType.departure;
+    }
   }
 }
