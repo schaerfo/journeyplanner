@@ -50,7 +50,9 @@ class _JourneyBuilder extends StatelessWidget {
       return ListView(
         children: [
           _AddLegTile(
-            onLegSelected: (_) {},
+            onLegSelected: (Leg leg) {
+              journey.prependLeg(leg);
+            },
             connectingTo: Connection.to(journey.origin),
           ),
           for (final currLeg in journey.legs)
@@ -58,7 +60,9 @@ class _JourneyBuilder extends StatelessWidget {
               line: currLeg,
             ),
           _AddLegTile(
-            onLegSelected: (_) {},
+            onLegSelected: (Leg leg) {
+              journey.appendLeg(leg);
+            },
             connectingTo: Connection.from(journey.destination),
           ),
         ],

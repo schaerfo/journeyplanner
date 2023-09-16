@@ -24,4 +24,23 @@ class Journey with ChangeNotifier {
     _legs.add(leg);
     notifyListeners();
   }
+
+  void appendLeg(Leg leg) {
+    assert(isConnectionValid(destination, leg.origin));
+    _legs.add(leg);
+    notifyListeners();
+  }
+
+  void prependLeg(Leg leg) {
+    assert(isConnectionValid(leg.destination, origin));
+    _legs.insert(0, leg);
+    notifyListeners();
+  }
+
+  bool isConnectionValid(Layover arrival, Layover departure) {
+    final isSameStation = arrival.station.id == departure.station.id;
+    final isAfterOrEqual =
+        arrival.scheduledArrival!.compareTo(departure.scheduledDeparture!) <= 0;
+    return isSameStation && isAfterOrEqual;
+  }
 }
