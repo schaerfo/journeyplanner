@@ -50,7 +50,7 @@ class _StopoverQuery extends StatefulWidget {
 class _StopoverQueryState extends State<_StopoverQuery> {
   Station? _selectedStation;
   late StopoverType _stopoverType;
-  var _dateTime = DateTime.now();
+  late DateTime _dateTime;
   var _modeSelection = ModeSelection();
 
   final _backend = DbTransportRestBackend();
@@ -64,6 +64,7 @@ class _StopoverQueryState extends State<_StopoverQuery> {
     super.initState();
     _stopoverType = _connectionType();
     _selectedStation = widget.connectingTo?.where;
+    _dateTime = _initialDateTime();
   }
 
   @override
@@ -113,7 +114,10 @@ class _StopoverQueryState extends State<_StopoverQuery> {
             var newDateTime = await showModalBottomSheet(
               context: context,
               showDragHandle: true,
-              builder: (context) => DateTimeSelection(_dateTime),
+              builder: (context) => DateTimeSelection(
+                _dateTime,
+                connection: widget.connectingTo,
+              ),
             );
             if (newDateTime == null) {
               return;
@@ -247,5 +251,9 @@ class _StopoverQueryState extends State<_StopoverQuery> {
     } else {
       return StopoverType.departure;
     }
+  }
+
+  DateTime _initialDateTime() {
+    return _isConnection() ? widget.connectingTo!.when : DateTime.now();
   }
 }
