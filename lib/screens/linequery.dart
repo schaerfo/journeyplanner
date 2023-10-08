@@ -42,15 +42,16 @@ class _LineQueryState extends State<_LineQuery> {
   _LineQueryState() {
     _timer = RestartableTimer(const Duration(milliseconds: 500), () {
       if (_query.isNotEmpty) {
-        _queryLines(_query);
+        _queryLines();
       }
     });
   }
 
-  void _queryLines(String query) async {
+  void _queryLines() async {
     setState(() {
       _lines.clear();
-      _runningQuery = CancelableOperation.fromFuture(_backend.findLines(query));
+      _runningQuery =
+          CancelableOperation.fromFuture(_backend.findLines(_query));
     });
     try {
       _runningQuery!.then((value) {
