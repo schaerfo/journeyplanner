@@ -1,16 +1,25 @@
-# journeyplanner_fl
+# Journey Planner
 
-A new Flutter project.
+[![Gitmoji](https://img.shields.io/badge/gitmoji-%20😜%20😍-FFDD67.svg?style=flat-square)](https://gitmoji.dev)
 
-## Getting Started
+Plan your train journeys more flexibly than is possible with traditional apps.
 
-This project is a starting point for a Flutter application.
+## Download
 
-A few resources to get you started if this is your first Flutter project:
+Currently, no packages are provided. To use Journey Planner,
+you have to download the source code and build it yourself (see below).
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Building
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Since Journey Planner is built with [Flutter](https://flutter.dev),
+you first have to [set up the flutter toolchain](https://docs.flutter.dev/get-started/install).
+Then, building the app is as simple as running
+
+```sh
+flutter build apk
+```
+
+## Project Status
+
+Journey Planner is currently an early preview for everyone interested to try out,
+give feedback and maybe make suggestions on the direction of the development.
