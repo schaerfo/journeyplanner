@@ -41,13 +41,14 @@ class _LineQueryState extends State<_LineQuery> {
 
   _LineQueryState() {
     _timer = RestartableTimer(const Duration(milliseconds: 500), () {
-      if (_query.isNotEmpty) {
-        _queryLines();
-      }
+      _queryLines();
     });
   }
 
   void _queryLines() async {
+    if (_query.isEmpty) {
+      return;
+    }
     setState(() {
       _lines.clear();
       _runningQuery =
