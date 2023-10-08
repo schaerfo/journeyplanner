@@ -31,7 +31,7 @@ class _LineQuery extends StatefulWidget {
 }
 
 class _LineQueryState extends State<_LineQuery> {
-  var _searchInProgress = false;
+  CancelableOperation<List<Leg>>? _runningQuery;
   var _emptyResult = false;
   var _lines = <Leg>[];
 
@@ -49,25 +49,38 @@ class _LineQueryState extends State<_LineQuery> {
 
   void _queryLines(String query) async {
     setState(() {
-      _searchInProgress = true;
       _lines.clear();
+      _runningQuery = CancelableOperation.fromFuture(_backend.findLines(query));
     });
-    List<Leg> response;
     try {
-      response = await _backend.findLines(query);
+      _runningQuery!.then((value) {
+        setState(() {
+          _lines = value;
+          _emptyResult = _lines.isEmpty;
+          _runningQuery = null;
+        });
+      }, onError: (error, _) {
+        setState(() {
+          _runningQuery = null;
+        });
+        throw error;
+      });
     } on HttpException catch (e) {
       print(e.message);
       setState(() {
-        _searchInProgress = false;
         _lines.clear();
       });
       return;
     }
-    setState(() {
-      _searchInProgress = false;
-      _lines = response;
-      _emptyResult = _lines.isEmpty;
-    });
+  }
+
+  void _abortQuery() {
+    if (_runningQuery != null) {
+      _runningQuery!.cancel();
+      setState(() {
+        _runningQuery = null;
+      });
+    }
   }
 
   @override
@@ -82,6 +95,7 @@ class _LineQueryState extends State<_LineQuery> {
                 hintText: 'Line',
               ),
               onChanged: (value) {
+                _abortQuery();
                 _query = value;
                 _timer.reset();
               },
@@ -91,7 +105,7 @@ class _LineQueryState extends State<_LineQuery> {
         const SizedBox(
           height: 15,
         ),
-        if (_searchInProgress) const CircularProgressIndicator(),
+        if (_runningQuery != null) const CircularProgressIndicator(),
         Expanded(
           child: _emptyResult
               ? const Center(
