@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:journeyplanner_fl/backend/db_transport_rest.dart';
 
 import '../data/leg.dart';
@@ -37,6 +38,7 @@ class _LineQueryState extends State<_LineQuery> {
 
   final _backend = DbTransportRestBackend();
   var _query = "";
+  DateTime _date = DateTime.now().copyWith(hour: 0, minute: 0);
   late RestartableTimer _timer;
 
   _LineQueryState() {
@@ -52,7 +54,7 @@ class _LineQueryState extends State<_LineQuery> {
     setState(() {
       _lines.clear();
       _runningQuery =
-          CancelableOperation.fromFuture(_backend.findLines(_query));
+          CancelableOperation.fromFuture(_backend.findLines(_query, _date));
     });
     try {
       _runningQuery!.then((value) {
@@ -103,6 +105,27 @@ class _LineQueryState extends State<_LineQuery> {
               },
             ),
           ),
+        ),
+        ListTile(
+          title: Text(
+            DateFormat.yMEd().format(_date),
+          ),
+          onTap: () async {
+            final result = await showDatePicker(
+              context: context,
+              initialDate: _date,
+              firstDate: DateTime.parse('2020-01-01'),
+              lastDate: DateTime.parse('2029-12-31'),
+            );
+            if (result == null) {
+              return;
+            }
+            setState(() {
+              _date = result;
+            });
+            _abortQuery();
+            _queryLines();
+          },
         ),
         const SizedBox(
           height: 15,
