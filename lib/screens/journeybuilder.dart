@@ -108,6 +108,9 @@ class _AddLegTile extends StatelessWidget {
             ],
           ),
         );
+        // Querying context.mounted after an async gap is recommended practice:
+        // https://api.flutter.dev/flutter/widgets/BuildContext/mounted.html
+        // ignore: use_build_context_synchronously
         if (!context.mounted) {
           return;
         }
