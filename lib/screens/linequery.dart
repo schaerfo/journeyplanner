@@ -56,26 +56,23 @@ class _LineQueryState extends State<_LineQuery> {
       _runningQuery =
           CancelableOperation.fromFuture(_backend.findLines(_query, _date));
     });
-    try {
-      _runningQuery!.then((value) {
-        setState(() {
-          _lines = value;
-          _emptyResult = _lines.isEmpty;
-          _runningQuery = null;
-        });
-      }, onError: (error, _) {
-        setState(() {
-          _runningQuery = null;
-        });
-        throw error;
-      });
-    } on HttpException catch (e) {
-      print(e.message);
+    _runningQuery!.then((value) {
       setState(() {
+        _lines = value;
+        _emptyResult = _lines.isEmpty;
+        _runningQuery = null;
+      });
+    }, onError: (error, _) {
+      setState(() {
+        _runningQuery = null;
         _lines.clear();
       });
-      return;
-    }
+      if (error is HttpException) {
+        print(error.message);
+      } else {
+        throw error;
+      }
+    });
   }
 
   void _abortQuery() {
