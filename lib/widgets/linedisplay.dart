@@ -81,11 +81,28 @@ class _LineDisplayState extends State<LineDisplay> {
     );
   }
 
+  DateTime? extractDate(DateTime? dt) {
+    if (dt == null) {
+      return null;
+    } else {
+      return DateTime(dt.year, dt.month, dt.day);
+    }
+  }
+
   List<Widget> _layoverListTiles(BuildContext context) {
     final result = <Widget>[];
 
+    DateTime? lastDate;
     bool active = widget.start == null && _entry == null;
     for (final currStopover in widget.line.layovers) {
+      if (currStopover.scheduledDeparture != null &&
+          extractDate(currStopover.scheduledDeparture) != lastDate) {
+        lastDate = extractDate(currStopover.scheduledDeparture);
+        result.add(Text(
+          intl.DateFormat.yMEd().format(currStopover.scheduledDeparture!),
+        ));
+      }
+
       if (currStopover.station.id == widget.start?.id ||
           currStopover.station == _entry) {
         active = true;
