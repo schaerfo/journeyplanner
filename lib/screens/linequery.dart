@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:journeyplanner_fl/backend/db_transport_rest.dart';
 
 import '../data/leg.dart';
@@ -37,41 +38,41 @@ class _LineQueryState extends State<_LineQuery> {
 
   final _backend = DbTransportRestBackend();
   var _query = "";
+  DateTime _date = DateTime.now().copyWith(hour: 0, minute: 0);
   late RestartableTimer _timer;
 
   _LineQueryState() {
     _timer = RestartableTimer(const Duration(milliseconds: 500), () {
-      if (_query.isNotEmpty) {
-        _queryLines(_query);
-      }
+      _queryLines();
     });
   }
 
-  void _queryLines(String query) async {
-    setState(() {
-      _lines.clear();
-      _runningQuery = CancelableOperation.fromFuture(_backend.findLines(query));
-    });
-    try {
-      _runningQuery!.then((value) {
-        setState(() {
-          _lines = value;
-          _emptyResult = _lines.isEmpty;
-          _runningQuery = null;
-        });
-      }, onError: (error, _) {
-        setState(() {
-          _runningQuery = null;
-        });
-        throw error;
-      });
-    } on HttpException catch (e) {
-      print(e.message);
-      setState(() {
-        _lines.clear();
-      });
+  void _queryLines() async {
+    if (_query.isEmpty) {
       return;
     }
+    setState(() {
+      _lines.clear();
+      _runningQuery =
+          CancelableOperation.fromFuture(_backend.findLines(_query, _date));
+    });
+    _runningQuery!.then((value) {
+      setState(() {
+        _lines = value;
+        _emptyResult = _lines.isEmpty;
+        _runningQuery = null;
+      });
+    }, onError: (error, _) {
+      setState(() {
+        _runningQuery = null;
+        _lines.clear();
+      });
+      if (error is HttpException) {
+        print(error.message);
+      } else {
+        throw error;
+      }
+    });
   }
 
   void _abortQuery() {
@@ -101,6 +102,27 @@ class _LineQueryState extends State<_LineQuery> {
               },
             ),
           ),
+        ),
+        ListTile(
+          title: Text(
+            DateFormat.yMEd().format(_date),
+          ),
+          onTap: () async {
+            final result = await showDatePicker(
+              context: context,
+              initialDate: _date,
+              firstDate: DateTime.parse('2020-01-01'),
+              lastDate: DateTime.parse('2029-12-31'),
+            );
+            if (result == null) {
+              return;
+            }
+            setState(() {
+              _date = result;
+            });
+            _abortQuery();
+            _queryLines();
+          },
         ),
         const SizedBox(
           height: 15,

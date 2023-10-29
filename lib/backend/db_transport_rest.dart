@@ -18,8 +18,7 @@ class DbTransportRestBackend {
 
   final _client = Client();
 
-  Future<List<Leg>> findLines(String query) async {
-    final now = DateTime.now();
+  Future<List<Leg>> findLines(String query, DateTime date) async {
     var uri = Uri(
       scheme: 'https',
       host: 'v6.db.transport.rest',
@@ -27,8 +26,8 @@ class DbTransportRestBackend {
       queryParameters: {
         'query': query,
         'onlyCurrentlyRunning': false.toString(),
-        'fromWhen': DateTime(now.year, now.month, now.day).toIso8601String(),
-        'untilWhen': DateTime(now.year, now.month, now.day, 23, 59, 59)
+        'fromWhen': DateTime(date.year, date.month, date.day).toIso8601String(),
+        'untilWhen': DateTime(date.year, date.month, date.day, 23, 59, 59)
             .toIso8601String(),
       },
     );
